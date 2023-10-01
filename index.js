@@ -3,7 +3,8 @@ const { startStandaloneServer } = require("@apollo/server/standalone");
 const gql = require("graphql-tag");
 
 
-const { User } = require('./models')
+const { User } = require('./models');
+const { json } = require("sequelize");
 
 const typeDefs = gql`
 
@@ -24,6 +25,8 @@ scalar Date
 
   type Mutation { 
     createUser(firstName:String! , lastName:String! , email:String! , password:String!):User
+    updateUser(id:ID!,firstName:String! , lastName:String! , email:String! , password:String!):User
+    deleteUser(id:ID!):String!
   }
   
 `;
@@ -51,6 +54,28 @@ const resolvers = {
                 return await User.findOne({where:{email:args.email}})
             }
             
+        },
+        updateUser : async (parent, args) => {
+           
+             await User.update(
+                {
+                    firstName:args.firstName,
+                    lastName:args.lastName,
+                    email:args.email,
+                    password:args.password,
+                    updatedAt:new Date()
+                },
+                { where: { id: args.id } }
+              )
+              return await User.findByPk(args.id)
+        },
+        deleteUser:async (parent,args) =>{
+           await User.destroy({
+                where: {
+                  id: args.id
+                },
+              });
+              return `${args.id} deleted success`;
         }
     }
 };
